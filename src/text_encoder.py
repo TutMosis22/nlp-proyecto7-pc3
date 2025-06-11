@@ -10,11 +10,11 @@ class TextEncoder(nn.Module):
     def __init__(self, device='cpu'):
         super(TextEncoder, self).__init__()
 
-        # Cargamos el tokenizer y modelo preentrenado DistilBERT
+        #CARGAMOS EL TOKENIZER Y MODELO PREENTRENADO DistilBERT
         self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         self.model = DistilBertModel.from_pretrained('distilbert-base-uncased')
 
-        # Congelamos los pesos del modelo para usarlo como extractor de características
+        #CONGELAMOS LOS PESOS DEL MODELO PARA USARLO COMO EXTRACTOR DE CARACTERÍSTICAS
         for param in self.model.parameters():
             param.requires_grad = False
 
@@ -29,16 +29,16 @@ class TextEncoder(nn.Module):
         Retorna:
             embeddings (torch.Tensor): Tensor de tamaño (B, L, D)
         """
-        # Tokenizamos el texto
+        # TOKENIZAMOS EL TEXTO
         encoding = self.tokenizer(
             texts,
             return_tensors='pt',
             padding=True,
             truncation=True,
-            max_length=64  # puedes ajustar el máximo
+            max_length=64  # PODEMOS AJUSTAR EL MÁXIMO
         ).to(self.device)
 
-        # Pasamos por el modelo y obtenemos los embeddings
+        # PASAMOSS POR EL MODELO Y OBTENEMOS LOS EMBBEDINGS
         with torch.no_grad():
             outputs = self.model(**encoding)
         
