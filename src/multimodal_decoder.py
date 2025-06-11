@@ -1,5 +1,3 @@
-# src/multimodal_decoder.py
-
 import torch
 import torch.nn as nn
 
