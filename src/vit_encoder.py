@@ -19,3 +19,22 @@ def get_image_embedding(image_path, processor, model):
     # Extraemos el embedding del [CLS] token (posición 0)
     image_embedding = outputs.last_hidden_state[:, 0, :]
     return image_embedding
+
+
+## ESTA PARTE ES PARA LA FUNCIÓN DE app.py YA QUE LA INTERFAZ Streamlit 
+## TRABAJA CON UNA IMAGEN CARGADA DESDE EL NAVEGADOR, NO DESDE UNA RUTA.
+
+def extract_image_features(image, processor, model):
+    """
+    Procesa una imagen PIL para extraer sus embeddings usando ViT.
+    """
+    if not isinstance(image, Image.Image):
+        raise ValueError("Se esperaba una imagen PIL.Image")
+
+    inputs = processor(images=image, return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Usamos el embedding del token [CLS]
+    image_embedding = outputs.last_hidden_state[:, 0, :]
+    return image_embedding
