@@ -1,5 +1,3 @@
-# src/text_encoder.py
-
 #from transformers import AutoTokenizer, AutoModel
 from transformers import GPT2Tokenizer, GPT2Model
 
