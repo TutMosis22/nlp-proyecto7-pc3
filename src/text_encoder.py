@@ -1,46 +1,28 @@
+# src/text_encoder.py
+
+#from transformers import AutoTokenizer, AutoModel
+from transformers import GPT2Tokenizer, GPT2Model
+
 import torch
-import torch.nn as nn
-from transformers import DistilBertTokenizer, DistilBertModel
 
-class TextEncoder(nn.Module):
-    """
-    Codificador de texto basado en DistilBERT.
-    Convierte una oración en una secuencia de embeddings.
-    """
-    def __init__(self, device='cpu'):
-        super(TextEncoder, self).__init__()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        #CARGAMOS EL TOKENIZER Y MODELO PREENTRENADO DistilBERT
-        self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        self.model = DistilBertModel.from_pretrained('distilbert-base-uncased')
+def load_text_encoder():
+    tokenizer = GPT2Tokenizer.from_pretrained("distilgpt2")
+    model = GPT2Model.from_pretrained("distilgpt2")
+    model.config.output_hidden_states = True
+    model.to(device)
+    model.eval()
+    return tokenizer, model
 
-        #CONGELAMOS LOS PESOS DEL MODELO PARA USARLO COMO EXTRACTOR DE CARACTERÍSTICAS
-        for param in self.model.parameters():
-            param.requires_grad = False
-
-        self.device = device
-        self.to(device)
-
-    def forward(self, texts):
-        """
-        Recibe una lista de oraciones y devuelve sus embeddings.
-        Parámetros:
-            texts (List[str]): Lista de strings (oraciones)
-        Retorna:
-            embeddings (torch.Tensor): Tensor de tamaño (B, L, D)
-        """
-        # TOKENIZAMOS EL TEXTO
-        encoding = self.tokenizer(
-            texts,
-            return_tensors='pt',
-            padding=True,
-            truncation=True,
-            max_length=64  # PODEMOS AJUSTAR EL MÁXIMO
-        ).to(self.device)
-
-        # PASAMOSS POR EL MODELO Y OBTENEMOS LOS EMBBEDINGS
-        with torch.no_grad():
-            outputs = self.model(**encoding)
-        
-        # outputs.last_hidden_state: (B, L, D)
-        return outputs.last_hidden_state
+def encode_text(text, tokenizer, model):
+    inputs = tokenizer(text, return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = model(**inputs, output_hidden_states=True)
+    # Usamos el último estado oculto del último token como embedding representativo
+    hidden_states = outputs.hidden_states       #UNA TUPLA DE CAPAS
+    if hidden_states is None:
+        raise ValueError("hidden_states sigue siendo None. Algo está mal con el modelo.")
+    last_hidden = hidden_states[-1]             #ÚLTIMA CAPA
+    text_embedding = last_hidden[:, -1, :]      #ÚLTIMO TOKEN
+    return text_embedding
