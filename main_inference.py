@@ -15,21 +15,21 @@ def main():
     parser.add_argument("--text", type=str, default="Describe la imagen", help="Prompt de texto base")
     args = parser.parse_args()
 
-    print("📦 Cargando modelos...")
+    print("Cargando modelos...")
     vit_model, vit_processor = load_vit_model()
     tokenizer, decoder_model = load_multimodal_decoder()
 
-    print("🖼️ Cargando imagen y extrayendo embedding visual...")
+    print("Cargando imagen y extrayendo embedding visual...")
     image = Image.open(args.image).convert("RGB")
     image_embedding = get_image_embedding(args.image, vit_model, vit_processor)
 
-    print("✍️ Procesando texto base y extrayendo embedding textual...")
+    print("Procesando texto base y extrayendo embedding textual...")
     text_embedding = encode_text(args.text, tokenizer, decoder_model)
 
-    print("🧠 Generando caption...")
+    print("Generando caption...")
     caption = generate_caption(image_embedding, text_embedding, decoder_model, tokenizer)
 
-    print("\n📷 Caption generado:")
+    print("\nCaption generado:")
     print(">>>", caption)
 
 if __name__ == "__main__":
